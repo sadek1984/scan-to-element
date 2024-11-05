@@ -1,0 +1,26 @@
+stages:
+  - submit_to_humyn
+
+submit:
+  stage: submit_to_humyn
+  image: alpine:3.18.0
+  script:
+    - apk update
+    - apk add jq curl git
+    - |
+      POST_BODY=$(jq --null-input --arg commitSha "$CI_COMMIT_SHA" --arg predictionsSha "$(git hash-object predictions.csv)" --arg commitBranch "$CI_COMMIT_BRANCH" --arg commitMessage "$CI_COMMIT_MESSAGE" '{"commitBranch": $commitBranch, "commitSha": $commitSha, "commitMessage": $commitMessage, "predictionsSha": $predictionsSha}')
+      RESPONSE=$(curl -q -H "Content-Type: application/json" -X POST "$UNEARTHED_PIPELINE_NOTIFY_ENDPOINT/csv-submission:scan-element" -d "$POST_BODY")
+      SUBMISSION_URL=$(echo $RESPONSE | jq -r '.submission_url')
+
+      if [ "$SUBMISSION_URL" != "null" ]; then
+          curl --upload-file predictions.csv "$SUBMISSION_URL"
+          echo "Completed with upload"
+      elif $(echo $RESPONSE | jq -r '.success'); then
+          echo "Completed without upload"
+      else
+          printf "-------\nSomething went wrong: $(echo $RESPONSE | jq -r '.message')\n-------"
+          exit 1
+      fi
+  only:
+    refs:
+      - main

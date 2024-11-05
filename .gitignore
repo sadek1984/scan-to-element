@@ -1,0 +1,29 @@
+# Pipeline files - these do not need to be committed
+# since each of these artefacts can be reproduced from
+# your submission.
+data/*
+model/*
+data-preprocessed/*
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+__pycache__
+
+# IDEs
+.idea
+.vscode/*
+.history/
+*.vsix
+*~
+
+# System files
+.DS_Store
